@@ -1,14 +1,18 @@
 package org.example;
 
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Conversor {
     private ConsultorMoneda consultorMoneda;
     private Scanner scanner;
+    private List<RegistroConversion> historialConversiones;
 
     public Conversor() {
         this.consultorMoneda = new ConsultorMoneda();
         this.scanner = new Scanner(System.in);
+        this.historialConversiones = new ArrayList<>();
     }
 
     public void exibirMenu() {
@@ -34,7 +38,8 @@ public class Conversor {
         System.out.println("16) Yuan chino =>> Dólar");
         System.out.println("17) Dólar =>> Franco suizo");
         System.out.println("18) Franco suizo =>> Dólar");
-        System.out.println("19) Salir");
+        System.out.println("19) Ver historial de conversiones");
+        System.out.println("20) Salir");
         System.out.println("Elija una opción válida:");
         System.out.println("*************************************************");
     }
@@ -42,7 +47,7 @@ public class Conversor {
     public void iniciar() {
         int opcion = 0;
 
-        while (opcion != 19) {
+        while (opcion != 20) {
             exibirMenu();
             try {
                 opcion = scanner.nextInt();
@@ -50,6 +55,8 @@ public class Conversor {
                 if (opcion >= 1 && opcion <= 18) {
                     realizarConversion(opcion);
                 } else if (opcion == 19) {
+                    mostrarHistorial();
+                } else if (opcion == 20) {
                     System.out.println("¡Gracias por usar el Conversor de Monedas!");
                 } else {
                     System.out.println("Opción inválida. Por favor, elija una opción válida.");
@@ -185,6 +192,7 @@ public class Conversor {
 
             if (cantidad < 0) {
                 System.out.println("Error: El valor debe ser positivo.");
+                pausarYContinuar();
                 return;
             }
 
@@ -194,13 +202,54 @@ public class Conversor {
                 double resultado = cantidad * tasa;
                 System.out.printf("El valor %.2f [%s] corresponde al valor final de =>>> %.2f [%s]%n",
                     cantidad, nombreOrigen, resultado, nombreDestino);
+
+                // Guardar en el historial
+                RegistroConversion registro = new RegistroConversion(
+                    monedaOrigen, monedaDestino, cantidad, resultado, tasa);
+                historialConversiones.add(registro);
+
             } else {
                 System.out.println("Error al obtener la tasa de conversión. Inténtelo de nuevo.");
             }
 
+            pausarYContinuar();
+
         } catch (Exception e) {
             System.out.println("Error: Por favor ingrese un número válido.");
             scanner.nextLine(); // Limpiar buffer
+            pausarYContinuar();
         }
+    }
+
+    private void mostrarHistorial() {
+        System.out.println("===============================================");
+        System.out.println("         HISTORIAL DE CONVERSIONES");
+        System.out.println("===============================================");
+
+        if (historialConversiones.isEmpty()) {
+            System.out.println("No hay conversiones en el historial.");
+        } else {
+            System.out.println("Últimas " + historialConversiones.size() + " conversiones:");
+            System.out.println();
+
+            for (int i = historialConversiones.size() - 1; i >= 0; i--) {
+                RegistroConversion registro = historialConversiones.get(i);
+                System.out.println((historialConversiones.size() - i) + ". " + registro.obtenerResumen());
+            }
+        }
+
+        pausarYContinuar();
+    }
+
+    private void pausarYContinuar() {
+        System.out.println();
+        System.out.print("Presione Enter para continuar...");
+        try {
+            scanner.nextLine(); // Consumir cualquier entrada pendiente
+            scanner.nextLine(); // Esperar Enter del usuario
+        } catch (Exception e) {
+            // Si hay algún problema, simplemente continúa
+        }
+        System.out.println();
     }
 }
